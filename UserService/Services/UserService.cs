@@ -20,7 +20,7 @@ namespace UserService.Services
         {
             var user = new User
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = dto.Id,
                 Name = dto.Name,
                 Email = dto.Email,
                 Age = dto.Age

@@ -9,6 +9,10 @@
       {
         "Path": "..\\APIGateway\\APIGateway.csproj",
         "Action": "Start"
+      },
+      {
+        "Path": "..\\UserService\\UserService.csproj",
+        "Action": "Start"
       }
     ]
   }

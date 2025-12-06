@@ -1,11 +1,14 @@
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Xml.Linq;
 using UserService.Models;
 
 namespace UserService.Repositories
@@ -27,7 +30,8 @@ namespace UserService.Repositories
 
         public User Create(User user)
         {
-            var sql = $"INSERT INTO \"user\" (id, name, email, age) VALUES ('{user.Id}', '{user.Name}', '{user.Email}', {user.Age})";
+            long ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000;
+            var sql = $"user,id={user.Id} name=\"{user.Name}\",email=\"{user.Email}\",age={user.Age}i {ts}";
             ExecuteSql(sql);
             return user;
         }
@@ -69,7 +73,7 @@ namespace UserService.Repositories
 
         public void Update(User user)
         {
-            // Upsert via insert
+            var sql = $"user,id={user.Id} name=\"{user.Name}\",email=\"{user.Email}\",age={user.Age}i";
             Create(user);
         }
 
@@ -82,9 +86,10 @@ namespace UserService.Repositories
         // Helper: execute non-query SQL
         private void ExecuteSql(string sql)
         {
-            var url = $"{_baseUrl}/api/v3/query_sql"; // example endpoint; adapt to actual InfluxDB 3 Core API
-            var content = JsonContent.Create(new { q = sql, db = _database });
-            var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+            var url = $"{_baseUrl}/api/v3/write_lp?db={_database}"; // example endpoint; adapt to actual InfluxDB 3 Core API
+            
+           
+            var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = new StringContent(sql, Encoding.UTF8, "text/plain") };
             if (!string.IsNullOrWhiteSpace(_token)) req.Headers.Add("Authorization", $"Bearer {_token}");
             var resp = _http.Send(req);
             resp.EnsureSuccessStatusCode();
@@ -103,6 +108,6 @@ namespace UserService.Repositories
             return body ?? new List<Dictionary<string, object?>>();
         }
 
-        
+
     }
 }

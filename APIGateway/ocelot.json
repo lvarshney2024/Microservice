@@ -1,12 +1,12 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/GetUserDetails",
-      "DownstreamScheme": "http",
+      "DownstreamPathTemplate": "/GetUserList",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5233
+          "Port": 7042
         }
       ],
       "UpstreamPathTemplate": "/UserDetails",
