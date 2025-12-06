@@ -17,40 +17,41 @@ namespace MicroService.Controllers
             _service = service;
         }
 
-        //[HttpPost]
-        //public ActionResult<Order> Create([FromBody] CreateOrderDto dto)
-        //{
-        //    var created = _service.Create(dto);
-        //    return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        //}
+        
+        [HttpPost("CreateOrder")]
+        public ActionResult<Order> Create([FromBody] CreateOrderDto dto)
+        {
+            var created = _service.Create(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
 
-        //[HttpGet("{id}")]
-        //public ActionResult<Order> GetById(string id)
-        //{
-        //    var order = _service.GetById(id);
-        //    if (order == null) return NotFound();
-        //    return Ok(order);
-        //}
+        [HttpGet("GetOrder/{id}")]
+        public ActionResult<Order> GetById(string id)
+        {
+            var order = _service.GetById(id);
+            if (order == null) return NotFound();
+            return Ok(order);
+        }
 
-        [Route("GetOrderList")]
-        [HttpGet]
+       
+        [HttpGet("GetOrderList")]        
         public ActionResult<List<Order>> GetAll()
         {
             return Ok(_service.GetAll());
         }
+        
+        [HttpPut("UpdateOrder/{id}")]
+        public ActionResult update(string id, [FromBody] CreateOrderDto dto)
+        {
+            _service.Update(id, dto);
+            return NoContent();
+        }
 
-        //[HttpPut("{id}")]
-        //public IActionResult Update(string id, [FromBody] CreateOrderDto dto)
-        //{
-        //    _service.Update(id, dto);
-        //    return NoContent();
-        //}
-
-        //[HttpDelete("{id}")]
-        //public IActionResult Delete(string id)
-        //{
-        //    _service.Delete(id);
-        //    return NoContent();
-        //}
+        [HttpPut("DeleteOrder/{id}")]      
+        public ActionResult delete(string id)
+        {
+            _service.Delete(id);
+            return NoContent();
+        }
     }
 }

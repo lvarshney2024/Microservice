@@ -17,23 +17,22 @@ namespace UserService.Controllers
             _service = service;
         }
 
-        //[HttpPost]
-        //public ActionResult<User> Create([FromBody] CreateUserDto dto)
-        //{
-        //    var created = _service.Create(dto);
-        //    return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        //}
+        [HttpPost("CreateUser")]
+        public ActionResult<User> Create([FromBody] CreateUserDto dto)
+        {
+            var created = _service.Create(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
 
-        //[HttpGet("{id}")]
-        //public ActionResult<User> GetById(string id)
-        //{
-        //    var user = _service.GetById(id);
-        //    if (user == null) return NotFound();
-        //    return Ok(user);
-        //}
+        [HttpGet("GetUser/{id}")]
+        public ActionResult<User> GetById(string id)
+        {
+            var user = _service.GetById(id);
+            if (user == null) return NotFound();
+            return Ok(user);
+        }
 
-        [Route("GetUserList")]
-        [HttpGet]        
+        [HttpGet("GetUserList")]               
         public ActionResult<List<User>> GetAll()
         {
             return Ok(_service.GetAll());
