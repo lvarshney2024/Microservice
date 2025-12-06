@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/APIGateway/obj
+/MicroService/.vs
+/.gitignore
+/MicroService/obj
+/OrderService/obj
