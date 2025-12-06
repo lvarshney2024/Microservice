@@ -1,12 +1,9 @@
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
-using System.Text.Json.Serialization;
 using UserService.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace UserService.Repositories
 {
@@ -49,8 +46,6 @@ namespace UserService.Repositories
 
         public List<User> GetAll()
         {
-            
-
             var sql = "SELECT * FROM \"user\"";
             var rows = QuerySql(sql);
             var users = new List<User>();
@@ -82,27 +77,44 @@ namespace UserService.Repositories
         // Helper: execute non-query SQL
         private void ExecuteSql(string sql)
         {
-            var url = $"{_baseUrl}/api/v3/query_sql"; // example endpoint; adapt to actual InfluxDB 3 Core API
-            var content = JsonContent.Create(new { q = sql, db = _database });
+            var url = $"{_baseUrl}/api/v1/sql"; // example endpoint; adapt to actual InfluxDB 3 Core API
+            var content = JsonContent.Create(new { sql = sql, database = _database });
             var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
             if (!string.IsNullOrWhiteSpace(_token)) req.Headers.Add("Authorization", $"Bearer {_token}");
-            var resp = _http.Send(req);
-            resp.EnsureSuccessStatusCode();
+
+            var resp = _http.SendAsync(req).GetAwaiter().GetResult();
+            var body = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            if (!resp.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException($"Request to {url} failed with {(int)resp.StatusCode} ({resp.ReasonPhrase}): {body}");
+            }
         }
 
         // Helper: query SQL and return rows as list of dictionaries
         private List<Dictionary<string, object?>> QuerySql(string sql)
         {
-            var url = $"{_baseUrl}/api/v3/query_sql"; // example endpoint; adapt to actual InfluxDB 3 Core API
-            var content = JsonContent.Create(new { q = sql, db = _database });
+            var url = $"{_baseUrl}/api/v1/sql"; // example endpoint; adapt to actual InfluxDB 3 Core API
+            var content = JsonContent.Create(new { sql = sql, database = _database });
             var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
             if (!string.IsNullOrWhiteSpace(_token)) req.Headers.Add("Authorization", $"Bearer {_token}");
-            var resp = _http.Send(req);
-            resp.EnsureSuccessStatusCode();
-            var body = resp.Content.ReadFromJsonAsync<List<Dictionary<string, object?>>>().GetAwaiter().GetResult();
-            return body ?? new List<Dictionary<string, object?>>();
-        }
 
-        
+            var resp = _http.SendAsync(req).GetAwaiter().GetResult();
+            var body = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            if (!resp.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException($"Request to {url} failed with {(int)resp.StatusCode} ({resp.ReasonPhrase}): {body}");
+            }
+
+            try
+            {
+                var parsed = System.Text.Json.JsonSerializer.Deserialize<List<Dictionary<string, object?>>>(body);
+                return parsed ?? new List<Dictionary<string, object?>>();
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                // Return empty list if response isn't JSON rows - caller will handle empty result
+                return new List<Dictionary<string, object?>>();
+            }
+        }
     }
 }

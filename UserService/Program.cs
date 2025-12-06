@@ -1,4 +1,3 @@
-using InfluxDB.Client;
 using UserService.Repositories;
 using UserService.Services;
 
@@ -12,21 +11,28 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// InfluxDB settings
+// InfluxDB settings (3.x)
 var influxUrl = builder.Configuration["Influx:Url"] ?? "http://localhost:8086";
-var influxToken = builder.Configuration["Influx:Token"] ?? "your-influxdb-token";
-var influxOrg = builder.Configuration["Influx:Org"] ?? "your-org";
-var influxBucket = builder.Configuration["Influx:Bucket"] ?? "UserServiceBucket";
+var influxToken = builder.Configuration["Influx:Token"] ?? string.Empty;
+var influxDatabase = builder.Configuration["Influx:Database"] ?? "Student";
 
-// Register InfluxDB client
-builder.Services.AddSingleton(new InfluxDBClient(influxUrl, influxToken));
+// Register a named HttpClient for talking to InfluxDB REST API
+builder.Services.AddHttpClient("Influx", client =>
+{
+    client.BaseAddress = new Uri(influxUrl);
+    if (!string.IsNullOrWhiteSpace(influxToken))
+    {
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", influxToken);
+    }
+});
 
 // Register repository and service
 builder.Services.AddScoped<IUserRepository>(sp =>
     new InfluxUserRepository(
-        sp.GetRequiredService<InfluxDBClient>(),
-        influxBucket,
-        influxOrg));
+        sp.GetRequiredService<System.Net.Http.IHttpClientFactory>().CreateClient("Influx"),
+        influxUrl,
+        influxToken,
+        influxDatabase));
 builder.Services.AddScoped<IUserService, UserService.Services.UserService>();
 
 var app = builder.Build();
