@@ -8,3 +8,4 @@
 /.gitignore
 /MicroService/obj
 /OrderService/obj
+/UserService/obj
